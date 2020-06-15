@@ -21,4 +21,8 @@ Supported are:
 * `audio_mime=mime_type`: Set preference to `mime_type` audio codec. Options are `audio/opus`, `audio/ISAC`, `audio/G722` and others.
 * `video_max_bitrate=bitrate`: Set the maximum bitrate for video.
 * `video_max_framerate=framerate`: Set the maximum framerate for video.
+* `video_scaledown=scalefactor`: Set the resolutions scaling down. Must be a float higher than 1.0.
+* `audio_max_bitrate=bitrate`: Set the maximum bitrate for audio.
+* `audio_max_framerate=framerate`: Set the maximum framerate for audio.
+
 

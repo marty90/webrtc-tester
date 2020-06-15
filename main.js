@@ -211,6 +211,27 @@ function setCodecParams(peerConnection){
 
       if ("video_max_framerate" in queryDict)
         params.encodings[0].maxFramerate = queryDict["video_max_framerate"];
+
+      if ("video_scaledown" in queryDict)
+        params.encodings[0].scaleResolutionDownBy = queryDict["video_scaledown"];      
+
+      sender.setParameters(params);
+
+    }
+
+    if (kind === "audio") {
+      var sender = transceiver.sender;
+      var params = sender.getParameters();
+      console.log(params);
+      if (!params.encodings) {
+        params.encodings = [{}];
+      }
+
+      if ("audio_max_bitrate" in queryDict)
+        params.encodings[0].maxBitrate = queryDict["audio_max_bitrate"];
+
+      if ("audio_max_framerate" in queryDict)
+        params.encodings[0].maxFramerate = queryDict["audio_max_framerate"];
       
       sender.setParameters(params);
 
