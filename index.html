@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+ *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta name="description" content="WebRTC Tester">
+    <title>Video to peer connection</title>
+
+</head>
+
+<body>
+
+<div id="container">
+
+    <h1>WebRTC Tester</span>
+    </h1>
+
+    <video crossOrigin="anonymous" id="leftVideo" playsinline controls muted>
+        <source src="Sample_640x360.mp4" type="video/mp4"/>
+        <p>This browser does not support the video element.</p>
+    </video>
+
+    <video id="rightVideo" playsinline autoplay controls muted></video>
+
+</div>
+
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src="main.js" async></script>
+
+</body>
+</html>
