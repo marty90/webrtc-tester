@@ -161,7 +161,7 @@ function onCreateSessionDescriptionError(error) {
 }
 
 function onCreateOfferSuccess(desc) {
-  //console.log(`Offer from pc1 ${desc.sdp}`);
+  console.log(`Offer from pc1 ${desc.sdp}`);
   console.log('pc1 setLocalDescription start');
   pc1.setLocalDescription(desc, () => onSetLocalSuccess(pc1), onSetSessionDescriptionError);
   console.log('pc2 setRemoteDescription start');
@@ -235,7 +235,9 @@ function setCodecParams(peerConnection){
 
       // NOT YET SUPPORTED
       //if ("audio_confort_noise" in queryDict)
-      //  params.encodings[0].dtx = true;
+      //  params.encodings[0].dtx = queryDict["audio_confort_noise"];
+      //if ("audio_ptime" in queryDict)
+      //  params.encodings[0].ptime = queryDict["audio_ptime"];
 
       sender.setParameters(params);
 
