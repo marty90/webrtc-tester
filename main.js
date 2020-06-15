@@ -111,6 +111,14 @@ function setCodecPrefs(peerConnection){
       recvCodecs = preferCodec(recvCodecs, queryDict["video_mime"]);
       transceiver.setCodecPreferences([...sendCodecs, ...recvCodecs]);
     }
+
+    if (kind === "audio" && "audio_mime" in queryDict) {
+      sendCodecs = preferCodec(sendCodecs, queryDict["audio_mime"]);
+      recvCodecs = preferCodec(recvCodecs, queryDict["audio_mime"]);
+      transceiver.setCodecPreferences([...sendCodecs, ...recvCodecs]);
+    }
+
+
   });
 
 }
