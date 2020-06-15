@@ -21,10 +21,10 @@ const offerOptions = {
 };
 
 let startTime;
+let queryDict = {} ;
 
 function parseArgs(){
 
-  var queryDict = {} ;
   location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]}) ;
   
   if ("video" in queryDict) {
@@ -82,6 +82,39 @@ rightVideo.onresize = () => {
   }
 };
 
+function preferCodec(codecs, mimeType) {
+  let otherCodecs = [];
+  let sortedCodecs = [];
+  let count = codecs.length;
+
+  codecs.forEach(codec => {
+    if (codec.mimeType === mimeType) {
+      sortedCodecs.push(codec);
+    } else {
+      otherCodecs.push(codec);
+    }
+  });
+
+  return sortedCodecs.concat(otherCodecs);
+}
+
+function setCodecPrefs(peerConnection){
+  const transceivers = peerConnection.getTransceivers();
+
+  transceivers.forEach(transceiver => {
+    const kind = transceiver.sender.track.kind;
+    let sendCodecs = RTCRtpSender.getCapabilities(kind).codecs;
+    let recvCodecs = RTCRtpReceiver.getCapabilities(kind).codecs;
+
+    if (kind === "video" && "video_mime" in queryDict) {
+      sendCodecs = preferCodec(sendCodecs, queryDict["video_mime"]);
+      recvCodecs = preferCodec(recvCodecs, queryDict["video_mime"]);
+      transceiver.setCodecPreferences([...sendCodecs, ...recvCodecs]);
+    }
+  });
+
+}
+
 function call() {
   console.log('Starting call');
   startTime = window.performance.now();
@@ -106,6 +139,8 @@ function call() {
 
   stream.getTracks().forEach(track => pc1.addTrack(track, stream));
   console.log('Added local stream to pc1');
+
+  setCodecPrefs(pc1);
 
   console.log('pc1 createOffer start');
   pc1.createOffer(onCreateOfferSuccess, onCreateSessionDescriptionError, offerOptions);

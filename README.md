@@ -16,4 +16,6 @@ Simply load the URL.
 Parameters of the tester are URL-encoded.
 Supported are:
 
-* `video`: path to the video to load.
+* `video=path`: path to the video to load.
+* `video_mime=mime_type`: Set preference to `mime_type` video codec. Options are `video/VP8`, `video/VP9`, `video/H264`
+
