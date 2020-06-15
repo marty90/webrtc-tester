@@ -192,6 +192,34 @@ function gotRemoteStream(event) {
   }
 }
 
+function setCodecParams(peerConnection){
+  const transceivers = peerConnection.getTransceivers();
+
+  transceivers.forEach(transceiver => {
+    const kind = transceiver.sender.track.kind;
+
+    if (kind === "video") {
+      var sender = transceiver.sender;
+      var params = sender.getParameters();
+      console.log(params);
+      if (!params.encodings) {
+        params.encodings = [{}];
+      }
+
+      if ("video_max_bitrate" in queryDict)
+        params.encodings[0].maxBitrate = queryDict["video_max_bitrate"];
+
+      if ("video_max_framerate" in queryDict)
+        params.encodings[0].maxFramerate = queryDict["video_max_framerate"];
+      
+      sender.setParameters(params);
+
+    }
+
+  });
+
+}
+
 function onCreateAnswerSuccess(desc) {
   // console.log(`Answer from pc2: ${desc.sdp}`);
 
@@ -199,6 +227,9 @@ function onCreateAnswerSuccess(desc) {
   pc2.setLocalDescription(desc, () => onSetLocalSuccess(pc2), onSetSessionDescriptionError);
   console.log('pc1 setRemoteDescription start');
   pc1.setRemoteDescription(desc, () => onSetRemoteSuccess(pc1), onSetSessionDescriptionError);
+
+  setCodecParams(pc1);
+
 }
 
 function onIceCandidate(pc, event) {
