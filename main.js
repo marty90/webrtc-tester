@@ -108,15 +108,15 @@ function setCodecPrefs(peerConnection){
     let sendCodecs = RTCRtpSender.getCapabilities(kind).codecs;
     let recvCodecs = RTCRtpReceiver.getCapabilities(kind).codecs;
 
-    if (kind === "video" && "video_mime" in queryDict) {
-      sendCodecs = preferCodec(sendCodecs, queryDict["video_mime"]);
-      recvCodecs = preferCodec(recvCodecs, queryDict["video_mime"]);
+    if (kind === "video" && "video_codec" in queryDict) {
+      sendCodecs = preferCodec(sendCodecs, "video/" + queryDict["video_codec"]);
+      recvCodecs = preferCodec(recvCodecs, "video/" + queryDict["video_codec"]);
       transceiver.setCodecPreferences([...sendCodecs, ...recvCodecs]);
     }
 
-    if (kind === "audio" && "audio_mime" in queryDict) {
-      sendCodecs = preferCodec(sendCodecs, queryDict["audio_mime"]);
-      recvCodecs = preferCodec(recvCodecs, queryDict["audio_mime"]);
+    if (kind === "audio" && "audio_codec" in queryDict) {
+      sendCodecs = preferCodec(sendCodecs, "audio/" + queryDict["audio_codec"]);
+      recvCodecs = preferCodec(recvCodecs, "audio/" + queryDict["audio_codec"]);
       transceiver.setCodecPreferences([...sendCodecs, ...recvCodecs]);
     }
 
@@ -232,7 +232,11 @@ function setCodecParams(peerConnection){
 
       if ("audio_max_framerate" in queryDict)
         params.encodings[0].maxFramerate = queryDict["audio_max_framerate"];
-      
+
+      // NOT YET SUPPORTED
+      //if ("audio_confort_noise" in queryDict)
+      //  params.encodings[0].dtx = true;
+
       sender.setParameters(params);
 
     }
