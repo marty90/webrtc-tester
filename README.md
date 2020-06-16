@@ -3,11 +3,14 @@ README
 
 This scripts automate the process of streaming a video provided by the user using WebRTC on a browser.
 This is useful to make in-vitro experiments of RTC network traffic.
-Using the URL-encoded parameters of the main URL, you can vary the employed codec, the bitrate, the framerate and other paremeters. If you change the input video, you can vary the streaming resolution.
+Using the URL-encoded parameters of the main URL, you can vary the employed codec, the bitrate, the framerate and other parameters. If you change the input video, you can vary the streaming resolution.
 
 ### Prerequisites
 
-Chrome: start it with: --allow-file-access-from-files
+You must use Chrome, as other browsers may not support some of the WebRTC features used to control codecs and other parameters.
+
+Note: the webpage works even if open as a file (without a web server).
+In this case, you must start Chrome with: `--allow-file-access-from-files` command line argument.
 
 ### Usage
 
