@@ -27,11 +27,16 @@ trap "kill ${http_pid}" INT
 # Run the docker
 echo "Starting Browsertime"
 name=browsertime_$RANDOM
-docker run  --rm -d --name $name \
+docker run  --rm -d --name $name --network=host \
             sitespeedio/browsertime \
             -n 1 --pageCompleteCheckStartWait $DURATION \
-            http://host.docker.internal:8000/index.html?$URL_PATH
-
+            http://127.0.0.1:8000/index.html?$URL_PATH
+            
+# Uncomment for MAC as it uses a different mechanism to reach localhost
+#docker run  --rm -d --name $name \
+#            sitespeedio/browsertime \
+#            -n 1 --pageCompleteCheckStartWait $DURATION \
+#            http://host.docker.internal:8000/index.html?$URL_PATH
 
 # Start capture
 echo "Starting Capturing"

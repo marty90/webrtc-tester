@@ -39,10 +39,14 @@ The syntax of the command is:
 ```
 
 Where:
-* `URL_PARAMETERS`: are the parameters of the webpage as above, e.g., `video_codec=H264&video_max_bitrate=500000`.
+* `URL_PARAMETERS`: are the parameters of the webpage as above, e.g., `video_codec=H264\&video_max_bitrate=500000`.  Note: you need to escape the `&` character with `\&` otherwise it is interpreted as a detach command.
 * `PCAP_FILE`: the output PCAP file. Must be relative path. Default is `capture.pcap`.
 * `DURATION_MS`: Duration of the test in milliseconds. Default is `10000`.
 
 Note: if you want to provide a custom video file, it must be reachable from the current directory using a relative path, as the script starts a simple HTTP server in your current path.
 
+Example: to run a test with H264 and G722, run:
+```
+./make_test.sh -u video_codec=H264\&audio_codec=G722 -p capture_h264_g722.pcap
+```
 
