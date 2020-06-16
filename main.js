@@ -105,6 +105,7 @@ function setCodecPrefs(peerConnection){
 
   transceivers.forEach(transceiver => {
     const kind = transceiver.sender.track.kind;
+    
     let sendCodecs = RTCRtpSender.getCapabilities(kind).codecs;
     let recvCodecs = RTCRtpReceiver.getCapabilities(kind).codecs;
 
