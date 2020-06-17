@@ -1,8 +1,10 @@
 #!/bin/bash
 
+# Default values
 URL_PATH=""
 DURATION=10000
 PCAP="capture.pcap"
+
 # Parse args
 while getopts  "u:d:p:" flag
 do
@@ -12,7 +14,6 @@ do
         p) PCAP=$OPTARG;;
     esac
 done
-
 
 # Check containers pulled
 docker pull sitespeedio/browsertime
@@ -27,16 +28,19 @@ trap "kill ${http_pid}" INT
 # Run the docker
 echo "Starting Browsertime"
 name=browsertime_$RANDOM
-docker run  --rm -d --name $name --network=host \
-            sitespeedio/browsertime \
-            -n 1 --pageCompleteCheckStartWait $DURATION \
-            http://127.0.0.1:8000/index.html?$URL_PATH
-            
-# Uncomment for MAC as it uses a different mechanism to reach localhost
-#docker run  --rm -d --name $name \
-#            sitespeedio/browsertime \
-#            -n 1 --pageCompleteCheckStartWait $DURATION \
-#            http://host.docker.internal:8000/index.html?$URL_PATH
+
+# Distinguish between MAC and Linux for problems in localhost contacting
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    docker run  --rm -d --name $name \
+                sitespeedio/browsertime \
+                -n 1 --pageCompleteCheckStartWait $DURATION \
+                http://host.docker.internal:8000/index.html?$URL_PATH
+else
+    docker run  --rm -d --name $name --network=host \
+                sitespeedio/browsertime \
+                -n 1 --pageCompleteCheckStartWait $DURATION \
+                http://127.0.0.1:8000/index.html?$URL_PATH
+fi
 
 # Start capture
 echo "Starting Capturing"
