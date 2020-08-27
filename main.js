@@ -26,7 +26,7 @@ let queryDict = {} ;
 function parseArgs(){
 
   location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]}) ;
-  
+
   if ("video" in queryDict) {
     var video = queryDict["video"] ;
     console.log("[PARAMS] Setting video to:", video);
@@ -55,7 +55,114 @@ function maybeCreateStream() {
   } else {
     console.log('captureStream() not supported');
   }
+  // se usi solo getConnestionStats senza 2 ottieni report completo
+  window.setInterval(getConnectionStats2, 1000, pc1, ".stats-box1")
+  window.setInterval(getConnectionStats2, 1000, pc2, ".stats-box2")
+
 }
+
+function getConnectionStats2(pc, query) {
+  pc.getStats(null).then(stats => {
+    let statsOutput = "";
+    // contiene parte del report inbound/outbound
+    let dict_type = {};
+    //contiene parte del report track
+    let dict_track = {};
+    //contiene parte del report candidate-locate
+    let dict_candidate_loc = {};
+    //contiene parte del report remote-candidate
+    let dict_candidate_rem = {};
+    //contiene parte del report remote-rtp-inbound
+    let dict_remote_in = {};
+    //salvo i dict tenendo conto che nel report inbound/outbound ho tutte le chiavi trackId, mediaId, transportId, Codec etc.
+    //gli altri report hanno solo una di queste chiavi, quindi i dict vanno poi incrociati tra loro usando i campi di dict_type
+    //come chiave di ricerca negli altri
+    stats.forEach(report => {
+        if (report.type == "local-candidate") {
+            dict_candidate_loc[report.transportId] = {"port" : report.port, "protocol" : report.protocol,
+        "ip":report.ip, "candidate" : "local"}
+        }
+        if (report.type == "remote-candidate") {
+            dict_candidate_rem[report.transportId] = {"port" : report.port, "protocol" : report.protocol,
+        "ip":report.ip, "candidate" : "remote"}
+        }
+        if (report.type == "track" && report.kind == "video") {
+            dict_track[report.id] = {"width": report.frameWidth, "height": report.frameHeight}// questo id sarebbe mediaSourceId in outbound report
+        }
+        if (report.type == "outbound-rtp") {
+            dict_type[report.id] = {"transportId":report.transportId, "ssrc":report.ssrc, "mediaSourceId" : report.mediaSourceId, "codecId":report.codecId,
+        "side":"outbound", "kind" : report.kind, "framsesSent":report.framesSent, "totalPacketSendDelay":report.totalPacketSendDelay, "fps": report.framesPerSecond,
+        "trackId":report.trackId}
+        }
+        if (report.type == "inbound-rtp") {
+            dict_type[report.id] = {"transportId":report.transportId, "ssrc":report.ssrc, "mediaSourceId" : report.mediaSourceId, "codecId":report.codecId,
+        "side":"inbound", "trackId":report.trackId, "kind":report.kind}
+        }
+        if (report.type == "remote-inbound-rtp") {
+            dict_remote_in[report.codecId] = {"jitter":report.jitter, "packetsLost":report.packetsLost, "ssrc":report.ssrc, "kind":report.kind, "roundTripTime":report.roundTripTime,
+        "transportId":report.transportId}
+        }
+    });
+
+    for (let key in dict_type) {
+      let report = dict_type[key]
+      if (report.kind == "audio"){
+          statsOutput += `<h2>Audio: ${report.side}</h2><strong>SSRC: </strong>${report.ssrc}<br>\n
+          <strong>CodecId: </strong>${report.codecId}<br>\n`;
+      }
+      if (report.kind == "video") {
+          console.log(dict_track[report.trackId])
+          console.log(report.trackId)
+          console.log(report.type)
+          statsOutput += `<h2>Video: ${report.side}</h2>\n<strong>SSRC: </strong>${report.ssrc}<br>\n
+          <strong>CodecId: </strong>${report.codecId}<br>\n`;
+          statsOutput += `<strong>width: </strong>${dict_track[report.trackId]["width"]}<br>\n
+          <strong>heigth: </strong>${dict_track[report.trackId]["height"]}<br>\n
+          <strong>fps: </strong>${report["fps"]}<br>\n`;
+
+
+      }
+      if (report.side == "outbound"){
+          statsOutput += `<strong>jitter: </strong>${dict_remote_in[report.codecId]["jitter"]}<br>\n
+          <strong>packetsLosts: </strong>${dict_remote_in[report.codecId]["packetsLost"]}<br>\n
+          <strong>roundTripTime: </strong>${dict_remote_in[report.codecId]["roundTripTime"]}<br>\n`;
+      }
+      statsOutput += `<strong>Port dst: </strong>${dict_candidate_rem[report.transportId]["port"]}<br>\n
+      <strong>Protocol dst: </strong>${dict_candidate_rem[report.transportId]["protocol"]}<br>\n
+      <strong>IP dst: </strong>${dict_candidate_rem[report.transportId]["ip"]}<br>\n`;
+
+      statsOutput += `<strong>Port src: </strong>${dict_candidate_loc[report.transportId]["port"]}<br>\n
+      <strong>Protocol src: </strong>${dict_candidate_loc[report.transportId]["protocol"]}<br>\n
+      <strong>IP src: </strong>${dict_candidate_loc[report.transportId]["ip"]}<br>\n`;
+  }
+  document.querySelector(query).innerHTML = statsOutput;
+
+});}
+
+
+function getConnectionStats(pc, query) {
+  pc.getStats(null).then(stats => {
+    console.log(stats)
+    let statsOutput = "";
+
+    stats.forEach(report => {
+      //console.log(report)
+      if (report.type != "codec" && report.type != "certificate") {
+          statsOutput += `<h2>Report: ${report.type}</h2>\n<strong>ID:</strong> ${report.id}<br>\n` +
+                         `<strong>Timestamp:</strong> ${report.timestamp}<br>\n`;
+
+          // Now the statistics for this report; we intentially drop the ones we
+          // sorted to the top above
+          Object.keys(report).forEach(statName => {
+          if (statName !== "id" && statName !== "timestamp" && statName !== "type") {
+              statsOutput += `<strong>${statName}:</strong> ${report[statName]}<br>\n`;
+          }
+      });
+  }});
+
+    document.querySelector(query).innerHTML = statsOutput;
+  });
+};
 
 // Video tag capture must be set up after video tracks are enumerated.
 leftVideo.oncanplay = maybeCreateStream;
@@ -105,7 +212,7 @@ function setCodecPrefs(peerConnection){
 
   transceivers.forEach(transceiver => {
     const kind = transceiver.sender.track.kind;
-    
+
     let sendCodecs = RTCRtpSender.getCapabilities(kind).codecs;
     let recvCodecs = RTCRtpReceiver.getCapabilities(kind).codecs;
 
@@ -131,6 +238,7 @@ function call() {
   startTime = window.performance.now();
   const videoTracks = stream.getVideoTracks();
   const audioTracks = stream.getAudioTracks();
+  console.log(videoTracks)
   if (videoTracks.length > 0) {
     console.log(`Using video device: ${videoTracks[0].label}`);
   }
@@ -139,6 +247,9 @@ function call() {
   }
   const servers = null;
   pc1 = new RTCPeerConnection(servers);
+  function onCreateSessionDescriptionError(error) {
+    console.log(`Failed to create session description: ${error.toString()}`);
+  }
   console.log('Created local peer connection object pc1');
   pc1.onicecandidate = e => onIceCandidate(pc1, e);
   pc2 = new RTCPeerConnection(servers);
@@ -155,11 +266,11 @@ function call() {
 
   console.log('pc1 createOffer start');
   pc1.createOffer(onCreateOfferSuccess, onCreateSessionDescriptionError, offerOptions);
+  return [pc1, pc2, videoTracks, audioTracks]
 }
 
-function onCreateSessionDescriptionError(error) {
-  console.log(`Failed to create session description: ${error.toString()}`);
-}
+
+
 
 function onCreateOfferSuccess(desc) {
   console.log(`Offer from pc1 ${desc.sdp}`);
@@ -172,6 +283,10 @@ function onCreateOfferSuccess(desc) {
   // to pass in the right constraints in order for it to
   // accept the incoming offer of audio and video.
   pc2.createAnswer(onCreateAnswerSuccess, onCreateSessionDescriptionError);
+}
+
+function onCreateSessionDescriptionError(error) {
+  console.log(`Failed to create session description: ${error.toString()}`);
 }
 
 function onSetLocalSuccess(pc) {
@@ -214,7 +329,7 @@ function setCodecParams(peerConnection){
         params.encodings[0].maxFramerate = queryDict["video_max_framerate"];
 
       if ("video_scaledown" in queryDict)
-        params.encodings[0].scaleResolutionDownBy = queryDict["video_scaledown"];      
+        params.encodings[0].scaleResolutionDownBy = queryDict["video_scaledown"];
 
       sender.setParameters(params);
 
@@ -266,7 +381,7 @@ function onIceCandidate(pc, event) {
           () => onAddIceCandidateSuccess(pc),
           err => onAddIceCandidateError(pc, err)
       );
-  console.log(`${getName(pc)} ICE candidate: 
+  console.log(`${getName(pc)} ICE candidate:
 ${event.candidate ?
     event.candidate.candidate : '(null)'}`);
 }

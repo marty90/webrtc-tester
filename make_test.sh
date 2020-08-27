@@ -4,14 +4,17 @@
 URL_PATH=""
 DURATION=10000
 PCAP="capture.pcap"
+LOG='log.txt'
+
 
 # Parse args
-while getopts  "u:d:p:" flag
+while getopts  "u:d:p:l:" flag
 do
     case $flag in
         u) URL_PATH=$OPTARG;;
         d) DURATION=$OPTARG;;
         p) PCAP=$OPTARG;;
+        l) LOG=$OPTARG;;
     esac
 done
 
@@ -31,12 +34,12 @@ name=browsertime_$RANDOM
 
 # Distinguish between MAC and Linux for problems in localhost contacting
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    docker run  --rm -d --name $name \
+    docker run -d --name $name \
                 sitespeedio/browsertime \
                 -n 1 --pageCompleteCheckStartWait $DURATION \
                 http://host.docker.internal:8000/index.html?$URL_PATH
 else
-    docker run  --rm -d --name $name --network=host \
+    docker run  -d --name $name --network=host \
                 sitespeedio/browsertime \
                 -n 1 --pageCompleteCheckStartWait $DURATION \
                 http://127.0.0.1:8000/index.html?$URL_PATH
@@ -52,7 +55,8 @@ trap "docker stop tcpdump_${name}" INT
 
 # Wait the container to stop
 docker wait $name
-
+docker logs $name > $name.log
+docker rm $(docker ps -a -f status=exited -q)
 # Kill it
 echo "Stopping HTTP server and capture"
 docker stop tcpdump_$name
