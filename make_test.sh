@@ -4,7 +4,7 @@
 URL_PATH=""
 DURATION=10000
 PCAP="capture.pcap"
-LOG='log.txt'
+LOG="log.txt"
 
 
 # Parse args
@@ -36,12 +36,14 @@ name=browsertime_$RANDOM
 if [[ "$OSTYPE" == "darwin"* ]]; then
     docker run -d --name $name \
                 sitespeedio/browsertime \
-                -n 1 --pageCompleteCheckStartWait $DURATION \
+                -n 1 --chrome.args "enable-logging=stderr" \
+                 --pageCompleteCheckStartWait $DURATION \
                 http://host.docker.internal:8000/index.html?$URL_PATH
 else
     docker run  -d --name $name --network=host \
                 sitespeedio/browsertime \
-                -n 1 --pageCompleteCheckStartWait $DURATION \
+                -n 1 --chrome.args "enable-logging=stderr" \
+                --pageCompleteCheckStartWait $DURATION \
                 http://127.0.0.1:8000/index.html?$URL_PATH
 fi
 
@@ -56,7 +58,8 @@ trap "docker stop tcpdump_${name}" INT
 # Wait the container to stop
 docker wait $name
 docker logs $name > $name.log
-docker rm $(docker ps -a -f status=exited -q)
+docker rm $name
+#docker rm $(docker ps -a -f status=exited -q) close all process exited
 # Kill it
 echo "Stopping HTTP server and capture"
 docker stop tcpdump_$name
