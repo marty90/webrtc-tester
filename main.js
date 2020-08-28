@@ -136,6 +136,7 @@ function getConnectionStats2(pc, query) {
       <strong>IP src: </strong>${dict_candidate_loc[report.transportId]["ip"]}<br>\n`;
   }
   document.querySelector(query).innerHTML = statsOutput;
+  console.log(statsOutput);
 
 });}
 
@@ -161,6 +162,7 @@ function getConnectionStats(pc, query) {
   }});
 
     document.querySelector(query).innerHTML = statsOutput;
+    console.log(statsOutput)
   });
 };
 
