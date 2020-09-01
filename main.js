@@ -77,6 +77,7 @@ function getConnectionStats2(pc, query) {
     //salvo i dict tenendo conto che nel report inbound/outbound ho tutte le chiavi trackId, mediaId, transportId, Codec etc.
     //gli altri report hanno solo una di queste chiavi, quindi i dict vanno poi incrociati tra loro usando i campi di dict_type
     //come chiave di ricerca negli altri
+    let statsOutput_json = {};
     stats.forEach(report => {
         if (report.type == "local-candidate") {
             dict_candidate_loc[report.transportId] = {"port" : report.port, "protocol" : report.protocol,
@@ -106,37 +107,56 @@ function getConnectionStats2(pc, query) {
 
     for (let key in dict_type) {
       let report = dict_type[key]
+      statsOutput_json = {};
       if (report.kind == "audio"){
           statsOutput += `<h2>Audio: ${report.side}</h2><strong>SSRC: </strong>${report.ssrc}<br>\n
           <strong>CodecId: </strong>${report.codecId}<br>\n`;
+          statsOutput_json["type"] = "Audio";
+          statsOutput_json["ssrc"] = report.ssrc;
+          statsOutput_json["codecId"] = report.codecId;
       }
       if (report.kind == "video") {
-          console.log(dict_track[report.trackId])
-          console.log(report.trackId)
-          console.log(report.type)
           statsOutput += `<h2>Video: ${report.side}</h2>\n<strong>SSRC: </strong>${report.ssrc}<br>\n
           <strong>CodecId: </strong>${report.codecId}<br>\n`;
           statsOutput += `<strong>width: </strong>${dict_track[report.trackId]["width"]}<br>\n
           <strong>heigth: </strong>${dict_track[report.trackId]["height"]}<br>\n
           <strong>fps: </strong>${report["fps"]}<br>\n`;
-
+          statsOutput_json["type"] = "Video";
+          statsOutput_json["side"] = report.side;
+          statsOutput_json["ssrc"] = report.ssrc;
+          statsOutput_json["codecId"] = report.codecId;
+          statsOutput_json["height"] = dict_track[report.trackId]["height"];
+          statsOutput_json["width"] = dict_track[report.trackId]["width"];
+          statsOutput_json["fps"] = report["fps"];
 
       }
       if (report.side == "outbound"){
           statsOutput += `<strong>jitter: </strong>${dict_remote_in[report.codecId]["jitter"]}<br>\n
           <strong>packetsLosts: </strong>${dict_remote_in[report.codecId]["packetsLost"]}<br>\n
           <strong>roundTripTime: </strong>${dict_remote_in[report.codecId]["roundTripTime"]}<br>\n`;
+          statsOutput_json["outbound"] = "y";
+          statsOutput_json["jitter"] = dict_remote_in[report.codecId]["jitter"];
+          statsOutput_json["packetsLosts"] = dict_remote_in[report.codecId]["packetsLost"];
+          statsOutput_json["roundTripTime"] = dict_remote_in[report.codecId]["roundTripTime"];
       }
       statsOutput += `<strong>Port dst: </strong>${dict_candidate_rem[report.transportId]["port"]}<br>\n
       <strong>Protocol dst: </strong>${dict_candidate_rem[report.transportId]["protocol"]}<br>\n
       <strong>IP dst: </strong>${dict_candidate_rem[report.transportId]["ip"]}<br>\n`;
 
+      statsOutput_json["port_dst"] = dict_candidate_rem[report.transportId]["port"];
+      statsOutput_json["protocol_dst"] = dict_candidate_rem[report.transportId]["protocol"];
+      statsOutput_json["ip_dst"] = dict_candidate_rem[report.transportId]["ip"];
+
       statsOutput += `<strong>Port src: </strong>${dict_candidate_loc[report.transportId]["port"]}<br>\n
       <strong>Protocol src: </strong>${dict_candidate_loc[report.transportId]["protocol"]}<br>\n
       <strong>IP src: </strong>${dict_candidate_loc[report.transportId]["ip"]}<br>\n`;
+
+      statsOutput_json["port_src"] = dict_candidate_loc[report.transportId]["port"];
+      statsOutput_json["protocol_src"] = dict_candidate_loc[report.transportId]["protocol"];
+      statsOutput_json["ip_src"] = dict_candidate_loc[report.transportId]["ip"];
   }
   document.querySelector(query).innerHTML = statsOutput;
-  console.log(statsOutput);
+  console.log(JSON.stringify(statsOutput_json));
 
 });}
 
