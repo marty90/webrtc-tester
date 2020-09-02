@@ -155,6 +155,7 @@ function getConnectionStats2(pc, query) {
       statsOutput_json["protocol_src"] = dict_candidate_loc[report.transportId]["protocol"];
       statsOutput_json["ip_src"] = dict_candidate_loc[report.transportId]["ip"];
   }
+  statsOutput_json["log"] = "statsOutput_json";
   document.querySelector(query).innerHTML = statsOutput;
   console.log(JSON.stringify(statsOutput_json));
 
